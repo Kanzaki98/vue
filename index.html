@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>TodoMVC</title>
+        <script src="https://unpkg.com/vue"></script>
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="https://unpkg.com/todomvc-app-css@2.2.0/index.css"
+        />
+        <style>
+            [v-cloak] {
+              display: none;
+            }
+        </style>
+	</head>
+	<body>
+		<section class="todoapp" id="todoapp">
+			<header class="header">
+				<h1>todos</h1>
+				<input class="new-todo" placeholder="What needs to be done?" autofocus @keyup.enter="add" >
+			</header>
+			<section class="main" v-if="is_add">
+				<input id="toggle-all" class="toggle-all" type="checkbox" @click="toggleAll" :checked="toggleStatus" >
+				<label for="toggle-all"></label>
+				<ul class="todo-list">
+					<li v-for="(item,index) in getCom" :key="item.id" :class="{completed:item.completed,editing:item === isTrue}">
+						<div class="view">
+							<input class="toggle" type="checkbox" v-model="item.completed">
+							<label @dblclick="isTrue = item">{{item.title}}</label>
+							<button class="destroy" @click="remove(index)"></button>
+						</div>
+						<input v-focus class="edit" :value="item.title" @keyup.esc=" isTrue = null" @keyup.enter="saveEdit(item,index,$event)">
+					</li>
+				</ul>
+			</section>
+			<footer class="footer" v-if="is_add">
+				<span class="todo-count"><strong>{{getCountComputed}}</strong> item left</span>
+				<ul class="filters">
+					<li>
+						<a href="#/" :class="{selected: getCom ===1}"  @click="isType = 1">all</a>
+					</li>
+					<li>
+						<a href="#/active" :class="{selected: getCom ===2}" @click="isType = 2">active</a>
+					</li>
+					<li>
+						<a href="#/completed" :class="{selected: getCom ===3}" @click="isType = 3">completed</a>
+					</li>
+				</ul>
+				<button class="clear-completed" @click="removeAll" v-show="getCountComputed !== list.length">clear-completed</button>
+			</footer>
+		</section>
+		<footer class="info">
+			<p>Double-click to edit a todo</p>
+			<p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
+			<p>Created by <a href="http://todomvc.com">you</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+		<script src="node_modules/vue/dist/vue.js"></script>
+		<script>
+	    const list = [];
+	    Vue.directive('focus',function (el) {
+		    el.focus();
+	    });
+      var vm = new Vue({
+        el:'#todoapp',
+        data:{
+          list:list,
+          isTrue:null,
+          isType:1,
+          is_add:false
+        },
+        methods:{
+          add(e){
+            let listText = e.target.value.trim();
+            if(!listText.length) return false;
+            let last = this.list[this.list.length -1];
+            let id = last?last.id+1:1;
+            this.list.push({id:id ,title:listText,completed:false});
+            e.target.value = '';
+            this.is_add = true;
+          },
+          toggleAll(e){
+            let checked = e.target.checked;
+				    this.list.forEach(item =>{
+					  item.completed = checked;
+				    })
+          },
+          remove(index){
+            this.list.splice(index,1);
+          },
+          removeAll(){
+            this.list = this.list.filter(item =>{
+              return !item.completed;
+            })
+            this.is_add = false;
+          },
+          saveEdit(item,index,e){
+            let editText = e.target.value;
+            if (!editText.length) {
+              return this.list.splice(index,1);
+            }
+            item.title = editText;
+            this.isTrue = null;
+          },
+        },
+        computed:{
+          getCountComputed(){
+            return this.list.filter((item) => !item.completed).length
+
+          },
+          toggleStatus(){
+            return this.list.every(item => item.completed);
+          },
+          getCom(){
+            if (this.isType === 1){
+              return this.list;
+            } else if (this.isType === 2){
+              return this.list.filter((item) => !item.completed);
+            } else{
+              return this.list.filter((item) => item.completed);
+            }
+          }
+        }
+      })
+    </script>
+	</body>
+</html>
